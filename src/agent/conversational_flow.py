@@ -1,6 +1,7 @@
 import random
 from datetime import datetime
-from src.audio import stt, tts  # We'll create these modules for speech
+from src.audio import stt, tts
+from src.llm_client import call_llm  
 
 class InterviewAgent:
     def __init__(self, min_answer_length=5, use_speech=True):
@@ -21,37 +22,37 @@ class InterviewAgent:
         self.use_speech = use_speech
 
     def ask_question(self, question):
-        attempt = 0
-
-        # Speak the question if TTS enabled
         if self.use_speech:
             tts.speak(question)
-            answer = stt.listen()
+            user_input = stt.listen()
         else:
-            answer = input(f"{question}\n> ").strip()
+            user_input = input(f"{question}\n> ").strip()
 
         # Fallback to text input if STT fails
-        if not answer:
-            answer = input(f"{question}\n> ").strip()
+        if not user_input:
+            user_input = input(f"{question}\n> ").strip()
 
-        while len(answer) < self.min_answer_length:
+        # Enforce minimum length (re-prompt if too short)
+        while len(user_input) < self.min_answer_length:
             prompt = random.choice(self.rephrase_prompts)
             if self.use_speech:
                 tts.speak(prompt)
+                user_input = stt.listen()
             else:
                 print(prompt)
-            if self.use_speech:
-                answer = stt.listen()
-            else:
-                answer = input(f"{question}\n> ").strip()
+                user_input = input(f"{question}\n> ").strip()
 
-            # Fallback again
-            if not answer:
-                answer = input(f"{question}\n> ").strip()
+            if not user_input:
+                user_input = input(f"{question}\n> ").strip()
 
-            attempt += 1
+        llm_reply = call_llm(user_input)
 
-        return answer
+        if self.use_speech:
+            tts.speak(llm_reply)
+        else:
+            print(f"\n🤖 LLM: {llm_reply}\n")
+
+        return user_input, llm_reply
 
     def start_interview(self):
         print("Welcome to the LunarTech AI Interview!\n")
@@ -61,11 +62,13 @@ class InterviewAgent:
         start_time = datetime.now()
 
         for i, question in enumerate(self.questions, 1):
-            answer = self.ask_question(question)
+            answer, llm_reply = self.ask_question(question)
             timestamp = datetime.now().isoformat()
+
             self.responses[f"Q{i}"] = {
                 "question": question,
                 "answer": answer,
+                "llm_reply": llm_reply,
                 "timestamp": timestamp
             }
 
@@ -76,15 +79,14 @@ class InterviewAgent:
             "total_questions": len(self.questions)
         }
 
-        print("\nInterview complete!:\n")
+        print("\nInterview complete!\n")
         if self.use_speech:
             tts.speak("The interview has concluded. All your responses have been recorded successfully.")
 
+        # Print transcript
         for qid, data in self.responses.items():
             if qid != "metadata":
-                print(f"{data['question']}\nAnswer: {data['answer']}\n")
-                if self.use_speech:
-                    tts.speak(f"{data['question']}: {data['answer']}")
+                print(f"{data['question']}\nUser: {data['answer']}\n🤖 LLM: {data['llm_reply']}\n")
 
         return self.responses
 
