@@ -76,9 +76,9 @@ class InterviewAgent:
             "total_questions": len(self.questions)
         }
 
-        print("\nInterview complete! Here are the collected responses:\n")
+        print("\nInterview complete!:\n")
         if self.use_speech:
-            tts.speak("Interview complete! Here are the collected responses.")
+            tts.speak("The interview has concluded. All your responses have been recorded successfully.")
 
         for qid, data in self.responses.items():
             if qid != "metadata":
