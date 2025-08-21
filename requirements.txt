@@ -1,0 +1,7 @@
+openai                     # LLM API calls
+pyttsx3                    # Text-to-speech
+whisper                     # Speech-to-text (OpenAI Whisper)
+sounddevice                # For microphone input
+numpy
+pandas
+python-dotenv              # For storing API keys securely
