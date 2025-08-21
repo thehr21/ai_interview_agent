@@ -10,3 +10,4 @@ venv/
 src/logs/interviews.csv
 src/logs/interviews.json
 src/logs/transcript.txt
+temp_audio.wav

@@ -1,6 +1,8 @@
+# src/agent/conversational_flow.py
 import random
 from datetime import datetime
-from src.audio import stt, tts
+from src.audio.stt import SpeechToText
+from src.audio.tts import TextToSpeech
 from src.llm_client import call_llm  
 
 class InterviewAgent:
@@ -21,10 +23,15 @@ class InterviewAgent:
         self.min_answer_length = min_answer_length
         self.use_speech = use_speech
 
+        # Initialize STT & TTS once
+        if self.use_speech:
+            self.stt_engine = SpeechToText(model_name="base")
+            self.tts_engine = TextToSpeech(voice_name="Rachel")
+
     def ask_question(self, question):
         if self.use_speech:
-            tts.speak(question)
-            user_input = stt.listen()
+            self.tts_engine.speak(question)
+            user_input = self.stt_engine.listen()
         else:
             user_input = input(f"{question}\n> ").strip()
 
@@ -36,8 +43,8 @@ class InterviewAgent:
         while len(user_input) < self.min_answer_length:
             prompt = random.choice(self.rephrase_prompts)
             if self.use_speech:
-                tts.speak(prompt)
-                user_input = stt.listen()
+                self.tts_engine.speak(prompt)
+                user_input = self.stt_engine.listen()
             else:
                 print(prompt)
                 user_input = input(f"{question}\n> ").strip()
@@ -48,7 +55,7 @@ class InterviewAgent:
         llm_reply = call_llm(user_input)
 
         if self.use_speech:
-            tts.speak(llm_reply)
+            self.tts_engine.speak(llm_reply)
         else:
             print(f"\n🤖 LLM: {llm_reply}\n")
 
@@ -57,7 +64,7 @@ class InterviewAgent:
     def start_interview(self):
         print("Welcome to the LunarTech AI Interview!\n")
         if self.use_speech:
-            tts.speak("Welcome to the LunarTech AI Interview!")
+            self.tts_engine.speak("Welcome to the LunarTech AI Interview!")
 
         start_time = datetime.now()
 
@@ -81,7 +88,7 @@ class InterviewAgent:
 
         print("\nInterview complete!\n")
         if self.use_speech:
-            tts.speak("The interview has concluded. All your responses have been recorded successfully.")
+            self.tts_engine.speak("The interview has concluded. All your responses have been recorded successfully.")
 
         # Print transcript
         for qid, data in self.responses.items():

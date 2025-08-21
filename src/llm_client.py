@@ -1,18 +1,18 @@
 # src/llm_client.py
 import os
 import httpx
+import asyncio
 from dotenv import load_dotenv
 
 # Load env variables
 load_dotenv()
 API_KEY = os.getenv("AIML_API_KEY")
-
 BASE_URL = "https://api.aimlapi.com/v1/chat/completions"
 
 
 async def generate_response(prompt: str, model: str = "gpt-4o-mini") -> str:
     """
-    Send a prompt to the LLM API and return the generated response.
+    Async: Send a prompt to the LLM API and return the generated response.
     """
     headers = {
         "Authorization": f"Bearer {API_KEY}",
@@ -31,3 +31,10 @@ async def generate_response(prompt: str, model: str = "gpt-4o-mini") -> str:
         data = response.json()
 
     return data["choices"][0]["message"]["content"].strip()
+
+
+def call_llm(prompt: str) -> str:
+    """
+    Synchronous wrapper for generate_response to be used in InterviewAgent.
+    """
+    return asyncio.run(generate_response(prompt))
