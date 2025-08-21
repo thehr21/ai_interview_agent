@@ -1,18 +1,20 @@
 from src.agent.conversational_flow import InterviewAgent
+from src.agent.session_logger import SessionLogger
 
 def run_interview():
+    # Start the interview
     agent = InterviewAgent()
     responses = agent.start_interview()
 
-    import json
-    import os
+    # Initialize the session logger
+    logger = SessionLogger()
 
-    output_path = os.path.join("logs", "latest_interview.json")
-    os.makedirs("logs", exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(responses, f, indent=4)
-    
-    print(f"\nResponses saved to {output_path}")
+    # Log responses in JSON, CSV, and human-readable transcript
+    logger.log_json(responses)
+    logger.log_csv(responses)
+    logger.log_transcript(responses)
+
+    print("\nAll responses saved successfully in JSON, CSV, and transcript files.")
 
 if __name__ == "__main__":
     run_interview()

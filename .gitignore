@@ -6,3 +6,7 @@ __pycache__/
 *.log
 venv/
 .env
+.logs
+src/logs/interviews.csv
+src/logs/interviews.json
+src/logs/transcript.txt
